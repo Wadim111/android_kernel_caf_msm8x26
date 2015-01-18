@@ -394,9 +394,12 @@ static void __mdss_dsi_ctrl_setup(struct mdss_panel_data *pdata)
 	pdata->panel_info.panel_power_on = 1;
 	mdss_dsi_phy_sw_reset((ctrl_pdata->ctrl_base));
 	mdss_dsi_phy_init(pdata);
-	mdss_dsi_bus_clk_stop(ctrl_pdata);
 
-	mdss_dsi_clk_ctrl(ctrl_pdata, 1);
+#ifndef CONFIG_FB_MSM_MDSS_SPECIFIC_PANEL
+	mdss_dsi_clk_ctrl(ctrl_pdata, DSI_ALL_CLKS, 1);
+#else
+        ctrl_pdata->spec_pdata->panel_power_on(pdata, 1);
+#endif  /* CONFIG_FB_MSM_MDSS_SPECIFIC_PANEL */
 
 	clk_rate = pdata->panel_info.clk_rate;
 	clk_rate = min(clk_rate, pdata->panel_info.clk_max);
@@ -709,7 +712,11 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	pinfo = &pdata->panel_info;
 	mipi = &pdata->panel_info.mipi;
 
+#ifndef CONFIG_FB_MSM_MDSS_SPECIFIC_PANEL
 	ret = mdss_dsi_panel_power_on(pdata, 1);
+#else
+        ret = ctrl_pdata->spec_pdata->panel_power_on(pdata, 1);
+#endif  /* CONFIG_FB_MSM_MDSS_SPECIFIC_PANEL */
 	if (ret) {
 		pr_err("%s:Panel power on failed. rc=%d\n", __func__, ret);
 		return ret;
@@ -719,7 +726,12 @@ int mdss_dsi_on(struct mdss_panel_data *pdata)
 	if (ret) {
 		pr_err("%s: failed to enable bus clocks. rc=%d\n", __func__,
 			ret);
+#ifndef CONFIG_FB_MSM_MDSS_SPECIFIC_PANEL
 		ret = mdss_dsi_panel_power_on(pdata, 0);
+#else
+	        ret = ctrl_pdata->spec_pdata->panel_power_on(pdata, 0);
+#endif  /* CONFIG_FB_MSM_MDSS_SPECIFIC_PANEL */
+
 		if (ret) {
 			pr_err("%s: Panel reset failed. rc=%d\n",
 					__func__, ret);

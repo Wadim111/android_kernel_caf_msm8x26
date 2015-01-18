@@ -104,42 +104,6 @@ exit:
 	return cnt;
 }
 
-/*
- * TE configuration:
- * dsi byte clock calculated base on 70 fps
- * around 14 ms to complete a kickoff cycle if te disabled
- * vclk_line base on 60 fps
- * write is faster than read
- * init == start == rdptr
- */
-static int mdss_mdp_cmd_tearcheck_cfg(struct mdss_mdp_mixer *mixer,
-			struct mdss_mdp_cmd_ctx *ctx, int enable)
-{
-	u32 cfg, height;
-
-	cfg = BIT(19); /* VSYNC_COUNTER_EN */
-	if (ctx->tear_check)
-		cfg |= BIT(20);	/* VSYNC_IN_EN */
-	cfg |= ctx->vclk_line;
-
-	height = (ctx->height + ctx->vporch) * 2;
-
-	mdss_mdp_pingpong_write(mixer, MDSS_MDP_REG_PP_SYNC_CONFIG_VSYNC, cfg);
-	mdss_mdp_pingpong_write(mixer, MDSS_MDP_REG_PP_SYNC_CONFIG_HEIGHT,
-				height); /* set to verh height */
-
-	mdss_mdp_pingpong_write(mixer, MDSS_MDP_REG_PP_VSYNC_INIT_VAL,
-						ctx->height);
-
-	mdss_mdp_pingpong_write(mixer, MDSS_MDP_REG_PP_RD_PTR_IRQ,
-						ctx->height + 1);
-
-	mdss_mdp_pingpong_write(mixer, MDSS_MDP_REG_PP_START_POS,
-						ctx->height);
-
-	mdss_mdp_pingpong_write(mixer, MDSS_MDP_REG_PP_SYNC_THRESH,
-		   (CONTINUE_THRESHOLD << 16) | (ctx->start_threshold));
-
 static int mdss_mdp_cmd_tearcheck_cfg(struct mdss_mdp_ctl *ctl,
 				      struct mdss_mdp_mixer *mixer)
 {

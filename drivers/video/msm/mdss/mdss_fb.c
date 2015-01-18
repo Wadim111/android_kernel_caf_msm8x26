@@ -1195,14 +1195,12 @@ static int mdss_fb_blank_sub(int blank_mode, struct fb_info *info,
 				mfd->panel_power_on = curr_pwr_state;
 				if ((pdata) && (pdata->set_backlight)) {
 					mutex_lock(&mfd->bl_lock);
-					mfd->bl_level = mfd->bl_level_old;
 					pdata->set_backlight(pdata, mfd->bl_level);
 					mutex_unlock(&mfd->bl_lock);
 				}
 			} else {
 				mdss_fb_release_fences(mfd);
 			}
-			mfd->bl_level_old = mfd->bl_level;
 			mfd->op_enable = true;
 			complete(&mfd->power_off_comp);
 		}
